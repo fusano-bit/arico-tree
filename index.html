@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Arico — ありちゃん諸語の樹</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-2: #f2f2f2;
+    --ink: #1a1a1a;
+    --ink-2: #3a3a3a;
+    --mute: #9a9a9a;
+    --line: #2a2a2a;
+    --line-faint: #aaaaaa;
+    --accent: #1a1a1a;
+    --hex: #e4e4e4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Noto Sans JP", sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+
+  /* ========== Header ========== */
+  .header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    background: linear-gradient(180deg, var(--bg) 60%, transparent 100%);
+    pointer-events: none;
+  }
+  .header > * { pointer-events: auto; }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+  }
+  .logo-hex {
+    display: flex; gap: 2px;
+  }
+  .logo-hex span {
+    width: 8px; height: 9px;
+    background: var(--hex);
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  }
+
+  .title-sub {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--mute);
+  }
+
+  /* ========== Main stage ========== */
+  .stage {
+    width: 100vw;
+    height: 100vh;
+    cursor: grab;
+    position: relative;
+    touch-action: none;
+  }
+  .stage.dragging { cursor: grabbing; }
+
+  .canvas-wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center center;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+  .canvas-wrap.no-transition { transition: none; }
+
+  svg {
+    overflow: visible;
+    display: block;
+  }
+
+  /* ========== Nodes ========== */
+  .node {
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .node circle.node-dot {
+    fill: var(--ink);
+    transition: all 0.3s;
+  }
+  .node circle.node-ring,
+  .node rect.node-ring {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1;
+    transition: all 0.3s;
+  }
+  .node:hover circle.node-ring,
+  .node:hover rect.node-ring {
+    stroke-width: 1.5;
+  }
+  .node.active circle.node-ring,
+  .node.active rect.node-ring {
+    stroke-width: 2;
+  }
+  .node.active circle.node-dot {
+    r: 5;
+  }
+  .node-label {
+    font-size: 14px;
+    fill: var(--ink);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    text-anchor: middle;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .node-sub {
+    font-size: 9px;
+    fill: var(--mute);
+    letter-spacing: 0.15em;
+    text-anchor: middle;
+    pointer-events: none;
+  }
+  .node-root .node-label {
+    font-size: 22px;
+    letter-spacing: 0.1em;
+  }
+  .node-category .node-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    fill: var(--ink-2);
+  }
+
+  .link {
+    fill: none;
+    stroke: var(--line-faint);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 4;
+    transition: all 0.4s;
+  }
+  .link.highlight {
+    stroke: var(--ink);
+    stroke-dasharray: none;
+    stroke-width: 1.5;
+  }
+
+  .hex-deco {
+    fill: var(--hex);
+    opacity: 0.6;
+  }
+
+  /* ========== Drawer ========== */
+  .drawer {
+    position: fixed;
+    top: 0; right: 0;
+    width: 380px;
+    max-width: 90vw;
+    height: 100vh;
+    background: var(--bg);
+    border-left: 1px solid var(--ink);
+    padding: 70px 28px 28px 28px;
+    transform: translateX(100%);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 80;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-close {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: none;
+    border: 1px solid var(--ink);
+    width: 34px; height: 34px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .drawer-handle {
+    display: none;
+  }
+
+  .drawer h2 {
+    font-size: 34px;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .drawer .sub {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--mute);
+    margin-bottom: 24px;
+  }
+  .drawer h3 {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--mute);
+    margin: 22px 0 10px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line-faint);
+  }
+  .drawer p {
+    font-size: 13px;
+    line-height: 1.9;
+    margin-bottom: 10px;
+  }
+  .drawer .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    padding: 3px 10px;
+    border: 1px solid var(--ink);
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .drawer .example {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    background: var(--bg-2);
+    margin-bottom: 6px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ========== Footer ========== */
+  .footer {
+    position: fixed;
+    bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--mute);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 40;
+    white-space: nowrap;
+  }
+  .footer span.dash {
+    width: 24px;
+    height: 1px;
+    background: var(--mute);
+  }
+
+  /* ========== Zoom controls ========== */
+  .zoom-ctrl {
+    position: fixed;
+    right: 16px; bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    z-index: 60;
+  }
+  .zoom-btn {
+    width: 36px; height: 36px;
+    background: var(--bg);
+    border: 1px solid var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .zoom-btn:active { background: var(--ink); color: var(--bg); }
+
+  /* ========================================================
+     PORTRAIT / MOBILE LAYOUT
+     ======================================================== */
+  @media (max-width: 768px), (orientation: portrait) {
+    .header {
+      padding: 12px 16px;
+    }
+    .title-sub { display: none; }
+    .logo { font-size: 11px; }
+
+    /* Drawer → bottom sheet */
+    .drawer {
+      top: auto;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 100%;
+      height: 72vh;
+      max-height: 72vh;
+      border-left: none;
+      border-top: 1px solid var(--ink);
+      padding: 28px 22px 40px 22px;
+      transform: translateY(100%);
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+    }
+    .drawer.open { transform: translateY(0); }
+
+    .drawer-handle {
+      display: block;
+      position: absolute;
+      top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 4px;
+      background: var(--line-faint);
+      border-radius: 2px;
+    }
+
+    .drawer-close {
+      top: 14px;
+      right: 14px;
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+    }
+
+    .drawer h2 {
+      font-size: 28px;
+    }
+    .drawer h3 {
+      font-size: 10px;
+      margin: 18px 0 8px 0;
+    }
+    .drawer p {
+      font-size: 12px;
+    }
+    .drawer .example {
+      font-size: 12px;
+    }
+
+    .footer {
+      font-size: 8px;
+      letter-spacing: 0.25em;
+      gap: 8px;
+      bottom: 12px;
+    }
+    .footer span.dash {
+      width: 16px;
+    }
+
+    .zoom-ctrl {
+      right: 12px;
+      bottom: 46px;
+    }
+    .zoom-btn {
+      width: 34px;
+      height: 34px;
+    }
+  }
+
+  @media (max-height: 600px) and (orientation: portrait) {
+    .drawer {
+      height: 80vh;
+      max-height: 80vh;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-hex"><span></span><span></span><span></span></div>
+    <span>ARICO</span>
+  </div>
+  <div class="title-sub">ありちゃん諸語の樹</div>
+</div>
+
+<div class="stage" id="stage">
+  <div class="canvas-wrap" id="canvas">
+    <svg id="svg" width="1400" height="1100" viewBox="-700 -550 1400 1100"></svg>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <button class="drawer-close" id="drawer-close">×</button>
+  <div id="drawer-content"></div>
+</div>
+
+<div class="zoom-ctrl">
+  <button class="zoom-btn" id="zoom-in">+</button>
+  <button class="zoom-btn" id="zoom-out">−</button>
+  <button class="zoom-btn" id="zoom-reset">○</button>
+</div>
+
+<div class="footer">
+  <span class="dash"></span>
+  <span>流れを見よ · 言え · 祈れ</span>
+  <span class="dash"></span>
+</div>
+
+<script>
+const data = {
+  id: "arico",
+  label: "Arico",
+  kana: "アリコ",
+  type: "root",
+  meaning: "ありちゃん諸語の祖語",
+  desc: "少語彙・広意味・状態共有中心の祖語。群れ維持・経路共有・危険伝達・育成・運搬のために最適化された、きわめて実務的な言語。",
+  children: [
+    {
+      id: "cat-space", label: "空間", type: "category",
+      meaning: "位置・方向・経路の語根",
+      children: [
+        { id: "ko", label: "ko", kana: "コ", meaning: "内・巣", desc: "所属領域、安全圏、維持すべき内部。" },
+        { id: "do", label: "do", kana: "ド", meaning: "外・外側", desc: "巣外、異所、境界の向こう側。" },
+        { id: "ra", label: "ra", kana: "ラ", meaning: "核・中心・帰還点", desc: "すべてが在るべき中心。祖語で最も聖なる語。" },
+        { id: "to", label: "to", kana: "ト", meaning: "道・経路・つながり", desc: "運ばれる道、辿られる経路、結ぶもの。" },
+      ]
+    },
+    {
+      id: "cat-group", label: "群れ", type: "category",
+      meaning: "個体と他者の語根",
+      children: [
+        { id: "ri", label: "ri", kana: "リ", meaning: "仲間・同胞", desc: "同群個体。味方。群れの構成員。" },
+        { id: "ta", label: "ta", kana: "タ", meaning: "他者・外個体", desc: "向かいの個体。非仲間。未知の存在。" },
+        { id: "ma", label: "ma", kana: "マ", meaning: "幼体・小さきもの", desc: "保護すべき対象。継承される命。" },
+        { id: "pa", label: "pa", kana: "パ", meaning: "大きいもの・強いもの", desc: "圧のある存在、大きな個体。" },
+      ]
+    },
+    {
+      id: "cat-sense", label: "資源・感覚", type: "category",
+      meaning: "受け渡しと知覚の語根",
+      children: [
+        { id: "nu", label: "nu", kana: "ヌ", meaning: "食・栄養", desc: "持ち運ぶ資源。共有される糧。" },
+        { id: "fe", label: "fe", kana: "フェ", meaning: "匂い・痕跡", desc: "フェロモン的しるし。状態の記録。" },
+        { id: "ha", label: "ha", kana: "ハ", meaning: "触れる・接触", desc: "触覚による知覚。直接の伝達。" },
+      ]
+    },
+    {
+      id: "cat-state", label: "状態", type: "category",
+      meaning: "群れの安否を表す語根",
+      children: [
+        { id: "sa", label: "sa", kana: "サ", meaning: "安定・整う・良い", desc: "正しい位置にある。群れにとって好ましい。" },
+        { id: "zu", label: "zu", kana: "ズ", meaning: "乱れ・不安定・崩れ", desc: "本来の配置から外れた状態。" },
+        { id: "ke", label: "ke", kana: "ケ", meaning: "危険・警戒・異常", desc: "群れに迫る何か。注意を要する。" },
+        { id: "no", label: "no", kana: "ノ", meaning: "無い・欠如・消失", desc: "在るべきものが失われた状態。" },
+      ]
+    },
+    {
+      id: "cat-act", label: "行為", type: "category",
+      meaning: "動きと配置の語根",
+      children: [
+        { id: "su", label: "su", kana: "ス", meaning: "行く・移動・動く", desc: "進むこと。向かうこと。" },
+        { id: "mo", label: "mo", kana: "モ", meaning: "運ぶ・持つ・保持する", desc: "資源や幼体を運搬する。維持する。" },
+        { id: "mi", label: "mi", kana: "ミ", meaning: "見る・感知・気づく", desc: "察知すること。情報を得ること。" },
+        { id: "ru", label: "ru", kana: "ル", meaning: "場所・配置・置く", desc: "留める、離す、位置を定める。" },
+      ]
+    },
+    {
+      id: "cat-poems", label: "七聖句", type: "category",
+      meaning: "Aricoの古語句・祈りと戒め",
+      children: [
+        { id: "p1", label: "ra sa", meaning: "秩序の句", desc: "核は安定している。すべてが在るべきところに在る。群れの中心は崩れていない。祖語で最も古い祈り。", isPoem: true },
+        { id: "p2", label: "ko do no", meaning: "境界の句", desc: "内は外ではない。境界を守れ。侵入や混乱への戒め。", isPoem: true },
+        { id: "p3", label: "ri no, sa no", meaning: "共同体の句", desc: "仲間なくして安定なし。孤立では秩序は続かない。", isPoem: true },
+        { id: "p4", label: "ma mo, ra sa", meaning: "継承の句", desc: "幼体を運べ、核を安定させよ。次世代保護こそ中心維持である。", isPoem: true },
+        { id: "p5", label: "fe no zu", meaning: "記憶の句", desc: "匂い無きは乱れ。痕跡の断絶は異常である。忘却・孤立への戒め。", isPoem: true },
+        { id: "p6", label: "to sa, ri sa", meaning: "繁栄の句", desc: "道良く、仲間満ちる。巡りよく共同体が満ちている状態。", isPoem: true },
+        { id: "p7", label: "to zu, mi fe", meaning: "判断の句", desc: "道乱るれば匂いを見よ。混乱時は痕跡を辿れ。", isPoem: true },
+      ]
+    },
+  ]
+};
+
+const svg = document.getElementById('svg');
+const NS = "http://www.w3.org/2000/svg";
+
+function el(tag, attrs = {}, parent = null) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+const isPortrait = () => window.innerHeight > window.innerWidth;
+
+const catRadius = 240;
+const leafRadius = 420;
+
+const categories = data.children;
+const nCat = categories.length;
+
+const catAngles = {};
+categories.forEach((c, i) => {
+  const angle = (i / nCat) * Math.PI * 2 - Math.PI / 2;
+  catAngles[c.id] = angle;
+});
+
+const positions = {};
+positions[data.id] = { x: 0, y: 0 };
+
+categories.forEach((cat) => {
+  const angle = catAngles[cat.id];
+  positions[cat.id] = {
+    x: Math.cos(angle) * catRadius,
+    y: Math.sin(angle) * catRadius,
+    angle
+  };
+
+  const nLeaves = cat.children.length;
+  const spread = Math.PI / 3.5;
+  cat.children.forEach((leaf, j) => {
+    const t = nLeaves === 1 ? 0.5 : j / (nLeaves - 1);
+    const leafAngle = angle - spread / 2 + spread * t;
+    positions[leaf.id] = {
+      x: Math.cos(leafAngle) * leafRadius,
+      y: Math.sin(leafAngle) * leafRadius,
+      angle: leafAngle,
+      parent: cat.id
+    };
+  });
+});
+
+const hexGroup = el('g', { class: 'hex-bg' }, svg);
+for (let i = 0; i < 14; i++) {
+  const angle = (i / 14) * Math.PI * 2;
+  const r = 500 + Math.random() * 80;
+  const x = Math.cos(angle) * r;
+  const y = Math.sin(angle) * r;
+  const size = 6 + Math.random() * 4;
+  el('polygon', {
+    class: 'hex-deco',
+    points: hexPoints(x, y, size),
+    opacity: 0.3 + Math.random() * 0.3
+  }, hexGroup);
+}
+
+function hexPoints(cx, cy, r) {
+  const pts = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 - Math.PI / 2;
+    pts.push(`${cx + Math.cos(a) * r},${cy + Math.sin(a) * r}`);
+  }
+  return pts.join(' ');
+}
+
+const ringGroup = el('g', {}, svg);
+[catRadius, leafRadius].forEach(r => {
+  el('circle', {
+    cx: 0, cy: 0, r: r,
+    fill: 'none',
+    stroke: 'var(--line-faint)',
+    'stroke-width': 0.8,
+    'stroke-dasharray': '2 5'
+  }, ringGroup);
+});
+
+const linkGroup = el('g', { class: 'links' }, svg);
+categories.forEach(cat => {
+  const p = positions[cat.id];
+  el('line', {
+    class: 'link',
+    x1: 0, y1: 0, x2: p.x, y2: p.y,
+    'data-to': cat.id
+  }, linkGroup);
+  cat.children.forEach(leaf => {
+    const l = positions[leaf.id];
+    el('line', {
+      class: 'link',
+      x1: p.x, y1: p.y, x2: l.x, y2: l.y,
+      'data-from': cat.id,
+      'data-to': leaf.id
+    }, linkGroup);
+  });
+});
+
+const nodeGroup = el('g', { class: 'nodes' }, svg);
+
+function drawNode(node, pos, type) {
+  const g = el('g', {
+    class: `node node-${type}`,
+    transform: `translate(${pos.x},${pos.y})`,
+    'data-id': node.id
+  }, nodeGroup);
+
+  if (type === 'root') {
+    el('circle', { class: 'node-ring', cx: 0, cy: 0, r: 38 }, g);
+    el('circle', { class: 'node-ring', cx: 0, cy: 0, r: 26 }, g);
+    el('circle', { class: 'node-ring', cx: 0, cy: 0, r: 14 }, g);
+    el('circle', { class: 'node-dot', cx: 0, cy: 0, r: 4 }, g);
+    el('text', { class: 'node-label', x: 0, y: 62 }, g).textContent = node.label;
+    el('text', { class: 'node-sub', x: 0, y: 80 }, g).textContent = 'ARICO · 祖語';
+    el('circle', { cx: 0, cy: 0, r: 50, fill: 'transparent' }, g);
+  } else if (type === 'category') {
+    el('circle', { class: 'node-ring', cx: 0, cy: 0, r: 18 }, g);
+    el('circle', { class: 'node-dot', cx: 0, cy: 0, r: 3 }, g);
+    const angle = pos.angle;
+    const lx = Math.cos(angle) * 32;
+    const ly = Math.sin(angle) * 32;
+    const t = el('text', { class: 'node-label', x: lx, y: ly + 4 }, g);
+    t.textContent = node.label;
+    t.setAttribute('text-anchor', Math.cos(angle) > 0.2 ? 'start' : Math.cos(angle) < -0.2 ? 'end' : 'middle');
+    el('circle', { cx: 0, cy: 0, r: 28, fill: 'transparent' }, g);
+  } else {
+    const isPoem = node.isPoem;
+    if (isPoem) {
+      el('rect', {
+        class: 'node-ring',
+        x: -10, y: -10, width: 20, height: 20,
+        transform: 'rotate(45)'
+      }, g);
+    } else {
+      el('circle', { class: 'node-ring', cx: 0, cy: 0, r: 12 }, g);
+    }
+    el('circle', { class: 'node-dot', cx: 0, cy: 0, r: 3 }, g);
+    const angle = pos.angle;
+    const lx = Math.cos(angle) * 28;
+    const ly = Math.sin(angle) * 28;
+    const t = el('text', { class: 'node-label', x: lx, y: ly + 4 }, g);
+    t.textContent = node.label;
+    t.setAttribute('text-anchor', Math.cos(angle) > 0.2 ? 'start' : Math.cos(angle) < -0.2 ? 'end' : 'middle');
+    el('circle', { cx: 0, cy: 0, r: 22, fill: 'transparent' }, g);
+  }
+}
+
+drawNode(data, positions[data.id], 'root');
+categories.forEach(cat => drawNode(cat, positions[cat.id], 'category'));
+categories.forEach(cat => {
+  cat.children.forEach(leaf => drawNode(leaf, positions[leaf.id], 'leaf'));
+});
+
+let activeId = null;
+
+function findNode(id) {
+  if (data.id === id) return data;
+  for (const c of data.children) {
+    if (c.id === id) return c;
+    for (const l of c.children) {
+      if (l.id === id) return l;
+    }
+  }
+  return null;
+}
+
+function findParentChain(id) {
+  const chain = [];
+  for (const c of data.children) {
+    if (c.id === id) { chain.push(data.id); return chain; }
+    for (const l of c.children) {
+      if (l.id === id) { chain.push(data.id, c.id); return chain; }
+    }
+  }
+  return chain;
+}
+
+// シングルタップ → ハイライト、ダブルタップ → ドロワー表示
+const tapTimers = {};
+const TAP_DELAY = 280; // ms
+
+document.querySelectorAll('.node').forEach(node => {
+  node.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const id = node.dataset.id;
+    const nodeData = findNode(id);
+    if (!nodeData) return;
+
+    if (tapTimers[id]) {
+      // ダブルタップ：ドロワーを開く
+      clearTimeout(tapTimers[id]);
+      delete tapTimers[id];
+      showDrawer(nodeData);
+      if (!isPortrait() && window.innerWidth > 768) {
+        const pos = positions[id];
+        if (pos && id !== 'arico') {
+          panTo(pos.x, pos.y, Math.max(scale, 1.1));
+        }
+      }
+    } else {
+      // シングルタップ：ハイライトのみ
+      tapTimers[id] = setTimeout(() => {
+        delete tapTimers[id];
+      }, TAP_DELAY);
+
+      // 同じノードを再タップした場合はハイライト解除
+      if (activeId === id) {
+        resetHighlights();
+        closeDrawer();
+        activeId = null;
+      } else {
+        resetHighlights();
+        highlightPath(id);
+        activeId = id;
+        // ドロワーが開いていたら内容だけ閉じる
+        closeDrawer();
+      }
+    }
+  });
+});
+
+function highlightPath(id) {
+  // 上流：Arico → 選択ノードまでの経路
+  const chain = findParentChain(id);
+  chain.push(id);
+  for (let i = 0; i < chain.length - 1; i++) {
+    const from = chain[i];
+    const to = chain[i + 1];
+    const link = from === 'arico'
+      ? document.querySelector(`line[data-to="${to}"]:not([data-from])`)
+      : document.querySelector(`line[data-from="${from}"][data-to="${to}"]`);
+    if (link) link.classList.add('highlight');
+  }
+  chain.forEach(cid => {
+    const n = document.querySelector(`[data-id="${cid}"]`);
+    if (n) n.classList.add('active');
+  });
+
+  // 下流：選択ノードから先につながる子・孫もハイライト
+  function highlightChildren(nodeId) {
+    const nodeData = findNode(nodeId);
+    if (!nodeData || !nodeData.children) return;
+    nodeData.children.forEach(child => {
+      const link = nodeId === 'arico'
+        ? document.querySelector(`line[data-to="${child.id}"]:not([data-from])`)
+        : document.querySelector(`line[data-from="${nodeId}"][data-to="${child.id}"]`);
+      if (link) link.classList.add('highlight');
+      const childEl = document.querySelector(`[data-id="${child.id}"]`);
+      if (childEl) childEl.classList.add('active');
+      highlightChildren(child.id);
+    });
+  }
+  highlightChildren(id);
+}
+
+function resetHighlights() {
+  document.querySelectorAll('.node.active').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.link.highlight').forEach(l => l.classList.remove('highlight'));
+}
+
+const drawer = document.getElementById('drawer');
+const drawerContent = document.getElementById('drawer-content');
+document.getElementById('drawer-close').addEventListener('click', () => {
+  closeDrawer();
+  resetHighlights();
+  activeId = null;
+});
+
+function showDrawer(node) {
+  let html = '';
+  html += `<h2>${node.label}</h2>`;
+  if (node.kana) html += `<div class="sub">${node.kana}</div>`;
+  else html += `<div class="sub">${node.type === 'root' ? '祖語' : node.type === 'category' ? 'カテゴリ' : node.isPoem ? '古語句' : '核語根'}</div>`;
+
+  if (node.meaning) {
+    html += `<h3>意味</h3><p>${node.meaning}</p>`;
+  }
+  if (node.desc) {
+    html += `<h3>解説</h3><p>${node.desc}</p>`;
+  }
+
+  if (node.children && node.children.length) {
+    html += `<h3>派生 / 内包</h3><div>`;
+    node.children.forEach(c => {
+      html += `<span class="tag">${c.label}</span>`;
+    });
+    html += `</div>`;
+  }
+
+  if (node.isPoem) {
+    html += `<h3>構成語根</h3>`;
+    const parts = node.label.replace(/,/g, '').split(/\s+/);
+    parts.forEach(p => {
+      const root = findNode(p);
+      if (root) {
+        html += `<div class="example">${p} · ${root.meaning}</div>`;
+      } else {
+        html += `<div class="example">${p}</div>`;
+      }
+    });
+  }
+
+  if (node.type === 'root') {
+    html += `<h3>基本例文</h3>`;
+    html += `<div class="example">ko sa. · 巣内異常なし</div>`;
+    html += `<div class="example">to zu. · 経路異常</div>`;
+    html += `<div class="example">fe no. · 痕跡消失</div>`;
+    html += `<div class="example">ri no. · 孤立・手薄</div>`;
+    html += `<div class="example">ke-ke. · 緊急警戒</div>`;
+  }
+
+  drawerContent.innerHTML = html;
+  drawer.classList.add('open');
+  drawer.scrollTop = 0;
+}
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+}
+
+// Swipe down to close on portrait bottom sheet
+let drawerTouchStart = null;
+drawer.addEventListener('touchstart', (e) => {
+  if (!isPortrait()) return;
+  if (drawer.scrollTop > 0) return;
+  drawerTouchStart = { y: e.touches[0].clientY };
+}, { passive: true });
+drawer.addEventListener('touchmove', (e) => {
+  if (!drawerTouchStart) return;
+  const dy = e.touches[0].clientY - drawerTouchStart.y;
+  if (dy > 0) {
+    drawer.style.transform = `translateY(${dy}px)`;
+  }
+}, { passive: true });
+drawer.addEventListener('touchend', (e) => {
+  if (!drawerTouchStart) return;
+  const dy = (e.changedTouches[0].clientY - drawerTouchStart.y);
+  drawer.style.transform = '';
+  if (dy > 80) {
+    closeDrawer();
+    resetHighlights();
+    activeId = null;
+  }
+  drawerTouchStart = null;
+});
+
+const stage = document.getElementById('stage');
+const canvas = document.getElementById('canvas');
+let tx = 0, ty = 0, scale = 1;
+
+function setTransform(s, x, y, animate = false) {
+  if (animate) canvas.classList.remove('no-transition');
+  else canvas.classList.add('no-transition');
+  scale = s;
+  tx = x;
+  ty = y;
+  // top:50% left:50% が基準点（SVGの左上角）
+  // SVGの中心(700,550)をキャンバス中央に、さらにoffsetを加える
+  const svgW = 1400, svgH = 1100;
+  const ox = -svgW / 2 * s + x;
+  const oy = -svgH / 2 * s + y;
+  canvas.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`;
+}
+
+function fitToScreen() {
+  const margin = 80;
+  const neededWidth = (leafRadius + margin) * 2;
+  const availableW = window.innerWidth;
+  const availableH = isPortrait() ? window.innerHeight * 0.92 : window.innerHeight * 0.9;
+  const fitScale = Math.min(1, availableW / neededWidth, availableH / neededWidth);
+  setTransform(fitScale, 0, 0, true);
+}
+
+function panTo(x, y, s) {
+  // SVG座標(x,y)を画面中央に持ってくる
+  setTransform(s, -x * s, -y * s, true);
+}
+fitToScreen();
+
+// Mouse drag
+let isDragging = false;
+let dragStart = { x: 0, y: 0, tx: 0, ty: 0 };
+stage.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.node')) return;
+  isDragging = true;
+  stage.classList.add('dragging');
+  dragStart = { x: e.clientX, y: e.clientY, tx, ty };
+  canvas.classList.add('no-transition');
+});
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  tx = dragStart.tx + (e.clientX - dragStart.x);
+  ty = dragStart.ty + (e.clientY - dragStart.y);
+  setTransform(scale, tx, ty);
+});
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+  stage.classList.remove('dragging');
+});
+
+// Touch pan / pinch
+let touchStart = null;
+let pinchStart = null;
+stage.addEventListener('touchstart', (e) => {
+  if (e.target.closest('.node')) return;
+  if (e.touches.length === 1) {
+    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx, ty };
+    canvas.classList.add('no-transition');
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    pinchStart = { dist: Math.hypot(dx, dy), scale };
+    touchStart = null;
+  }
+}, { passive: true });
+stage.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 1 && touchStart) {
+    tx = touchStart.tx + (e.touches[0].clientX - touchStart.x);
+    ty = touchStart.ty + (e.touches[0].clientY - touchStart.y);
+    setTransform(scale, tx, ty);
+  } else if (e.touches.length === 2 && pinchStart) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.hypot(dx, dy);
+    scale = Math.max(0.4, Math.min(3, pinchStart.scale * (dist / pinchStart.dist)));
+    setTransform(scale, tx, ty);
+  }
+}, { passive: true });
+stage.addEventListener('touchend', () => {
+  touchStart = null;
+  pinchStart = null;
+});
+
+// Wheel zoom
+stage.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = -e.deltaY * 0.001;
+  scale = Math.max(0.4, Math.min(3, scale + delta * scale));
+  setTransform(scale, tx, ty);
+}, { passive: false });
+
+document.getElementById('zoom-in').addEventListener('click', () => {
+  setTransform(Math.min(3, scale * 1.25), tx, ty, true);
+});
+document.getElementById('zoom-out').addEventListener('click', () => {
+  setTransform(Math.max(0.4, scale / 1.25), tx, ty, true);
+});
+document.getElementById('zoom-reset').addEventListener('click', () => {
+  fitToScreen();
+  closeDrawer();
+  resetHighlights();
+  activeId = null;
+});
+
+stage.addEventListener('click', (e) => {
+  if (e.target.closest('.node')) return;
+  closeDrawer();
+  resetHighlights();
+  activeId = null;
+});
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    fitToScreen();
+  }, 200);
+});
+
+// Entrance animation
+window.addEventListener('load', () => {
+  document.querySelectorAll('.node').forEach((n, i) => {
+    n.style.opacity = '0';
+    setTimeout(() => {
+      n.style.transition = 'opacity 0.6s';
+      n.style.opacity = '1';
+    }, 100 + i * 30);
+  });
+});
+</script>
+
+</body>
+</html>
