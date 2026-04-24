@@ -82,13 +82,20 @@
     position: absolute;
     top: 50%;
     left: 50%;
+    width: 1px;
+    height: 1px;
     transform-origin: center center;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
   }
   .canvas-wrap.no-transition { transition: none; }
 
-  svg {
+  /* SVG is centered within canvas-wrap (a 1x1 anchor point at screen center) */
+  .canvas-wrap svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     overflow: visible;
     display: block;
   }
@@ -843,28 +850,40 @@ function setTransform(s, x, y, animate = false) {
   scale = s;
   tx = x;
   ty = y;
-  // top:50% left:50% が基準点（SVGの左上角）
-  // SVGの中心(700,550)をキャンバス中央に、さらにoffsetを加える
-  const svgW = 1400, svgH = 1100;
-  const ox = -svgW / 2 * s + x;
-  const oy = -svgH / 2 * s + y;
-  canvas.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`;
+  // canvas-wrap は画面中央に固定された1x1の点
+  // JS側は「その点からの相対移動＋スケール」だけ担当
+  canvas.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+}
+
+// モバイル/デスクトップそれぞれの初期スケール
+function getInitialScale() {
+  const isMobile = window.innerWidth < 768 || isPortrait();
+  if (isMobile) {
+    // モバイル: 中央ノードが見えることを優先、大きめのスケール
+    const w = window.innerWidth;
+    // 画面幅にカテゴリノード(半径240)が余裕で収まるくらい
+    return Math.max(0.55, Math.min(0.85, w / 600));
+  }
+  // デスクトップ: ツリー全体が入るようにフィット
+  const margin = 80;
+  const needed = (leafRadius + margin) * 2;
+  return Math.min(1, window.innerWidth / needed, window.innerHeight * 0.9 / needed);
 }
 
 function fitToScreen() {
-  const margin = 80;
-  const neededWidth = (leafRadius + margin) * 2;
-  const availableW = window.innerWidth;
-  const availableH = isPortrait() ? window.innerHeight * 0.92 : window.innerHeight * 0.9;
-  const fitScale = Math.min(1, availableW / neededWidth, availableH / neededWidth);
-  setTransform(fitScale, 0, 0, true);
+  setTransform(getInitialScale(), 0, 0, true);
 }
 
 function panTo(x, y, s) {
   // SVG座標(x,y)を画面中央に持ってくる
   setTransform(s, -x * s, -y * s, true);
 }
+
+// 初期表示：即時 + requestAnimationFrame で確実に適用
 fitToScreen();
+requestAnimationFrame(() => {
+  fitToScreen();
+});
 
 // Mouse drag
 let isDragging = false;
@@ -948,13 +967,10 @@ stage.addEventListener('click', (e) => {
   activeId = null;
 });
 
-let resizeTimeout;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    fitToScreen();
-  }, 200);
-});
+// resize で fitToScreen を自動実行しない
+// （モバイルのアドレスバー伸縮や visualViewport 変化で
+//   ユーザーのズーム操作が勝手にリセットされるのを防ぐ）
+// リセットしたい時は ○ ボタンで明示的に呼ぶ
 
 // Entrance animation
 window.addEventListener('load', () => {
