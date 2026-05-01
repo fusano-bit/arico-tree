@@ -68,6 +68,127 @@
     color: var(--mute);
   }
 
+  .docs-btn {
+    background: var(--bg);
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .docs-btn:active, .docs-btn:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  /* ========== Docs Gallery (full-screen modal) ========== */
+  .docs-modal {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+  }
+  .docs-modal.open { display: flex; }
+
+  .docs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line-faint);
+    background: var(--bg);
+  }
+  .docs-title {
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--ink);
+  }
+  .docs-close {
+    background: none;
+    border: 1px solid var(--ink);
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .docs-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--line-faint);
+    background: var(--bg);
+  }
+  .docs-tab {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--mute);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .docs-tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+
+  .docs-pages {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 16px 80px 16px;
+    background: var(--bg-2);
+  }
+  .docs-page-set {
+    display: none;
+  }
+  .docs-page-set.active {
+    display: block;
+  }
+  .docs-page {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto 24px auto;
+    background: var(--bg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid var(--line-faint);
+  }
+  .docs-page img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .docs-page-num {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--mute);
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+
+  .docs-footer {
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--mute);
+    padding: 16px;
+    border-top: 1px solid var(--line-faint);
+    background: var(--bg);
+  }
+
   /* ========== Main stage ========== */
   .stage {
     width: 100vw;
@@ -301,6 +422,25 @@
     .title-sub { display: none; }
     .logo { font-size: 11px; }
 
+    .docs-btn {
+      font-size: 9px;
+      padding: 6px 10px;
+      letter-spacing: 0.15em;
+    }
+
+    .docs-pages {
+      padding: 16px 12px 60px 12px;
+    }
+    .docs-tab {
+      font-size: 10px;
+      padding: 10px 8px;
+      letter-spacing: 0.12em;
+    }
+    .docs-title {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+
     /* Drawer → bottom sheet */
     .drawer {
       top: auto;
@@ -388,7 +528,7 @@
     <div class="logo-hex"><span></span><span></span><span></span></div>
     <span>ARICO</span>
   </div>
-  <div class="title-sub">ありちゃん諸語の樹</div>
+  <button class="docs-btn" id="docs-open">資料 / DOCS</button>
 </div>
 
 <div class="stage" id="stage">
@@ -414,6 +554,41 @@
   <span class="dash"></span>
   <span>流れを見よ · 言え · 保て</span>
   <span class="dash"></span>
+</div>
+
+<!-- Docs Gallery Modal -->
+<div class="docs-modal" id="docs-modal">
+  <div class="docs-header">
+    <span class="docs-title">ARICO · 設定資料 / DOCUMENTATION</span>
+    <button class="docs-close" id="docs-close">×</button>
+  </div>
+  <div class="docs-tabs">
+    <button class="docs-tab active" data-lang="ja">日本語</button>
+    <button class="docs-tab" data-lang="en">ENGLISH</button>
+  </div>
+  <div class="docs-pages" id="docs-pages">
+    <div class="docs-page-set active" data-lang="ja">
+      <div class="docs-page">
+        <div class="docs-page-num">1 / 2 · 祖語の構造</div>
+        <img src="images/arico-ja-1.jpg" alt="Arico 祖語の構造" loading="lazy">
+      </div>
+      <div class="docs-page">
+        <div class="docs-page-num">2 / 2 · 詩学・七聖句・多層表記</div>
+        <img src="images/arico-ja-2.jpg" alt="Arico 詩学" loading="lazy">
+      </div>
+    </div>
+    <div class="docs-page-set" data-lang="en">
+      <div class="docs-page">
+        <div class="docs-page-num">1 / 2 · Proto-language Structure</div>
+        <img src="images/arico-en-1.jpg" alt="Arico Proto-language" loading="lazy">
+      </div>
+      <div class="docs-page">
+        <div class="docs-page-num">2 / 2 · Poetics, Core Sentences, and Multilayer Notation</div>
+        <img src="images/arico-en-2.jpg" alt="Arico Poetics" loading="lazy">
+      </div>
+    </div>
+  </div>
+  <div class="docs-footer">流れを見よ · 言え · 保て / SEE · SPEAK · MAINTAIN THE FLOW</div>
 </div>
 
 <script>
@@ -859,18 +1034,18 @@ function setTransform(s, x, y, animate = false) {
 function getInitialScale() {
   const isMobile = window.innerWidth < 768 || isPortrait();
   if (isMobile) {
-    // モバイル: 中央ノードが見えることを優先、大きめのスケール
-    const w = window.innerWidth;
-    // 画面幅にカテゴリノード(半径240)が余裕で収まるくらい
-    return Math.max(0.55, Math.min(0.85, w / 600));
+    // モバイル: 中央ノードが確実に見えるスケール
+    return 0.7;
   }
-  // デスクトップ: ツリー全体が入るようにフィット
+  // デスクトップ: ツリー全体フィット
   const margin = 80;
   const needed = (leafRadius + margin) * 2;
   return Math.min(1, window.innerWidth / needed, window.innerHeight * 0.9 / needed);
 }
 
 function fitToScreen() {
+  // tx=0, ty=0 で SVG原点（Arico）が画面中央に来る
+  // （CSS の top:50% left:50% + SVG の translate(-50%,-50%) による）
   setTransform(getInitialScale(), 0, 0, true);
 }
 
@@ -971,6 +1146,31 @@ stage.addEventListener('click', (e) => {
 // （モバイルのアドレスバー伸縮や visualViewport 変化で
 //   ユーザーのズーム操作が勝手にリセットされるのを防ぐ）
 // リセットしたい時は ○ ボタンで明示的に呼ぶ
+
+// ========== Docs Gallery ==========
+const docsModal = document.getElementById('docs-modal');
+const docsPages = document.getElementById('docs-pages');
+
+document.getElementById('docs-open').addEventListener('click', () => {
+  docsModal.classList.add('open');
+  docsPages.scrollTop = 0;
+});
+
+document.getElementById('docs-close').addEventListener('click', () => {
+  docsModal.classList.remove('open');
+});
+
+document.querySelectorAll('.docs-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const lang = tab.dataset.lang;
+    document.querySelectorAll('.docs-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.docs-page-set').forEach(set => {
+      set.classList.toggle('active', set.dataset.lang === lang);
+    });
+    docsPages.scrollTop = 0;
+  });
+});
 
 // Entrance animation
 window.addEventListener('load', () => {
