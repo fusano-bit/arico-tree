@@ -80,22 +80,14 @@
 
   .canvas-wrap {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 1px;
-    height: 1px;
-    transform-origin: center center;
+    top: 50%; left: 50%;
+    transform-origin: 0 0;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
   }
   .canvas-wrap.no-transition { transition: none; }
 
-  /* SVG is centered within canvas-wrap (a 1x1 anchor point at screen center) */
-  .canvas-wrap svg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  svg {
     overflow: visible;
     display: block;
   }
@@ -412,7 +404,7 @@
 
 <div class="footer">
   <span class="dash"></span>
-  <span>流れを見よ · 言え · 保て</span>
+  <span>流れを見よ · 言え · 祈れ</span>
   <span class="dash"></span>
 </div>
 
@@ -431,7 +423,7 @@ const data = {
       children: [
         { id: "ko", label: "ko", kana: "コ", meaning: "内・巣", desc: "所属領域、安全圏、維持すべき内部。" },
         { id: "do", label: "do", kana: "ド", meaning: "外・外側", desc: "巣外、異所、境界の向こう側。" },
-        { id: "ra", label: "ra", kana: "ラ", meaning: "核・中心・帰還点", desc: "すべてが在るべき中心。祖語の基軸語。" },
+        { id: "ra", label: "ra", kana: "ラ", meaning: "核・中心・帰還点", desc: "すべてが在るべき中心。祖語で最も聖なる語。" },
         { id: "to", label: "to", kana: "ト", meaning: "道・経路・つながり", desc: "運ばれる道、辿られる経路、結ぶもの。" },
       ]
     },
@@ -476,13 +468,13 @@ const data = {
     },
     {
       id: "cat-poems", label: "七聖句", type: "category",
-      meaning: "Aricoの古語句・群れの状態を確認する定型句",
+      meaning: "Aricoの古語句・祈りと戒め",
       children: [
-        { id: "p1", label: "ra sa", meaning: "秩序の句", desc: "核は安定している。すべてが在るべきところに在る。群れの中心は崩れていない。祖語で最も古い確認句。", isPoem: true },
-        { id: "p2", label: "ko do no", meaning: "境界の句", desc: "内は外ではない。境界を守れ。侵入や混乱への警戒句。", isPoem: true },
+        { id: "p1", label: "ra sa", meaning: "秩序の句", desc: "核は安定している。すべてが在るべきところに在る。群れの中心は崩れていない。祖語で最も古い祈り。", isPoem: true },
+        { id: "p2", label: "ko do no", meaning: "境界の句", desc: "内は外ではない。境界を守れ。侵入や混乱への戒め。", isPoem: true },
         { id: "p3", label: "ri no, sa no", meaning: "共同体の句", desc: "仲間なくして安定なし。孤立では秩序は続かない。", isPoem: true },
         { id: "p4", label: "ma mo, ra sa", meaning: "継承の句", desc: "幼体を運べ、核を安定させよ。次世代保護こそ中心維持である。", isPoem: true },
-        { id: "p5", label: "fe no zu", meaning: "記憶の句", desc: "匂い無きは乱れ。痕跡の断絶は異常である。忘却・孤立への警戒句。", isPoem: true },
+        { id: "p5", label: "fe no zu", meaning: "記憶の句", desc: "匂い無きは乱れ。痕跡の断絶は異常である。忘却・孤立への戒め。", isPoem: true },
         { id: "p6", label: "to sa, ri sa", meaning: "繁栄の句", desc: "道良く、仲間満ちる。巡りよく共同体が満ちている状態。", isPoem: true },
         { id: "p7", label: "to zu, mi fe", meaning: "判断の句", desc: "道乱るれば匂いを見よ。混乱時は痕跡を辿れ。", isPoem: true },
       ]
@@ -850,40 +842,28 @@ function setTransform(s, x, y, animate = false) {
   scale = s;
   tx = x;
   ty = y;
-  // canvas-wrap は画面中央に固定された1x1の点
-  // JS側は「その点からの相対移動＋スケール」だけ担当
-  canvas.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
-}
-
-// モバイル/デスクトップそれぞれの初期スケール
-function getInitialScale() {
-  const isMobile = window.innerWidth < 768 || isPortrait();
-  if (isMobile) {
-    // モバイル: 中央ノードが見えることを優先、大きめのスケール
-    const w = window.innerWidth;
-    // 画面幅にカテゴリノード(半径240)が余裕で収まるくらい
-    return Math.max(0.55, Math.min(0.85, w / 600));
-  }
-  // デスクトップ: ツリー全体が入るようにフィット
-  const margin = 80;
-  const needed = (leafRadius + margin) * 2;
-  return Math.min(1, window.innerWidth / needed, window.innerHeight * 0.9 / needed);
-}
-
-function fitToScreen() {
-  setTransform(getInitialScale(), 0, 0, true);
+  canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
 }
 
 function panTo(x, y, s) {
-  // SVG座標(x,y)を画面中央に持ってくる
-  setTransform(s, -x * s, -y * s, true);
+  const newTx = -x * s;
+  const newTy = -y * s;
+  setTransform(s, newTx, newTy, true);
 }
 
-// 初期表示：即時 + requestAnimationFrame で確実に適用
+// Fit the whole tree to viewport on load/resize
+function fitToScreen() {
+  const margin = 80;
+  const neededWidth = (leafRadius + margin) * 2;
+  const availableW = window.innerWidth;
+  const availableH = isPortrait() ? window.innerHeight * 0.92 : window.innerHeight * 0.9;
+  const fitScale = Math.min(1, availableW / neededWidth, availableH / neededWidth);
+  // Center: SVG origin (0,0) = Arico中心 → 画面中央に来るようオフセット
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  setTransform(fitScale, centerX, centerY, true);
+}
 fitToScreen();
-requestAnimationFrame(() => {
-  fitToScreen();
-});
 
 // Mouse drag
 let isDragging = false;
@@ -899,7 +879,7 @@ window.addEventListener('mousemove', (e) => {
   if (!isDragging) return;
   tx = dragStart.tx + (e.clientX - dragStart.x);
   ty = dragStart.ty + (e.clientY - dragStart.y);
-  setTransform(scale, tx, ty);
+  canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
 });
 window.addEventListener('mouseup', () => {
   isDragging = false;
@@ -925,13 +905,13 @@ stage.addEventListener('touchmove', (e) => {
   if (e.touches.length === 1 && touchStart) {
     tx = touchStart.tx + (e.touches[0].clientX - touchStart.x);
     ty = touchStart.ty + (e.touches[0].clientY - touchStart.y);
-    setTransform(scale, tx, ty);
+    canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
   } else if (e.touches.length === 2 && pinchStart) {
     const dx = e.touches[0].clientX - e.touches[1].clientX;
     const dy = e.touches[0].clientY - e.touches[1].clientY;
     const dist = Math.hypot(dx, dy);
     scale = Math.max(0.4, Math.min(3, pinchStart.scale * (dist / pinchStart.dist)));
-    setTransform(scale, tx, ty);
+    canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
   }
 }, { passive: true });
 stage.addEventListener('touchend', () => {
@@ -943,8 +923,10 @@ stage.addEventListener('touchend', () => {
 stage.addEventListener('wheel', (e) => {
   e.preventDefault();
   const delta = -e.deltaY * 0.001;
-  scale = Math.max(0.4, Math.min(3, scale + delta * scale));
-  setTransform(scale, tx, ty);
+  const newScale = Math.max(0.4, Math.min(3, scale + delta * scale));
+  scale = newScale;
+  canvas.classList.add('no-transition');
+  canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
 }, { passive: false });
 
 document.getElementById('zoom-in').addEventListener('click', () => {
@@ -967,10 +949,13 @@ stage.addEventListener('click', (e) => {
   activeId = null;
 });
 
-// resize で fitToScreen を自動実行しない
-// （モバイルのアドレスバー伸縮や visualViewport 変化で
-//   ユーザーのズーム操作が勝手にリセットされるのを防ぐ）
-// リセットしたい時は ○ ボタンで明示的に呼ぶ
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    fitToScreen();
+  }, 200);
+});
 
 // Entrance animation
 window.addEventListener('load', () => {
