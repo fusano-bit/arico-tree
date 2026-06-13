@@ -2,8 +2,19 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arico — ありちゃん諸語の樹</title>
+<meta name="description" content="ありちゃん諸語の祖語「Arico」。少語彙・広意味・状態共有中心の人工語。群れ維持・経路共有・危険伝達のために最適化された言語体系。">
+<meta property="og:title" content="Arico — ありちゃん諸語の樹">
+<meta property="og:description" content="少語彙・広意味・状態共有中心の祖語。群れ維持・経路共有・危険伝達に最適化された言語体系を探索する。">
+<meta property="og:image" content="https://fusano-bit.github.io/arico-tree/images/arico-ja-1.jpg">
+<meta property="og:url" content="https://fusano-bit.github.io/arico-tree/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Arico — ありちゃん諸語の樹">
+<meta name="twitter:description" content="少語彙・広意味・状態共有中心の祖語。群れ維持・経路共有・危険伝達に最適化された言語体系を探索する。">
+<meta name="twitter:image" content="https://fusano-bit.github.io/arico-tree/images/arico-ja-1.jpg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,5 95,27 95,73 50,95 5,73 5,27' fill='%231a1a1a'/></svg>">
 <style>
   :root {
     --bg: #ffffff;
@@ -370,6 +381,86 @@
     letter-spacing: 0.08em;
   }
 
+  .footer-link {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--mute);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-link:hover { color: var(--ink); }
+
+  /* ========== Hint overlay ========== */
+  .hint-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.85);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.4s;
+    backdrop-filter: blur(2px);
+  }
+  .hint-box {
+    text-align: center;
+    padding: 32px 40px;
+    border: 1px solid var(--ink);
+    background: var(--bg);
+  }
+  .hint-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .hint-key {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--ink);
+    width: 80px;
+    text-align: right;
+  }
+  .hint-sep {
+    color: var(--mute);
+  }
+  .hint-desc {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--ink-2);
+    width: 140px;
+    text-align: left;
+  }
+  .hint-dismiss {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--mute);
+    margin-top: 20px;
+  }
+
+  /* タグ・例文のクリック可能スタイル */
+  .drawer .tag[data-goto] {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .drawer .tag[data-goto]:hover,
+  .drawer .tag[data-goto]:focus {
+    background: var(--ink);
+    color: var(--bg);
+    outline: none;
+  }
+  .drawer .link-example {
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .drawer .link-example:hover,
+  .drawer .link-example:focus {
+    background: var(--line-faint);
+    outline: none;
+  }
+
   /* ========== Footer ========== */
   .footer {
     position: fixed;
@@ -550,10 +641,21 @@
   <button class="zoom-btn" id="zoom-reset">○</button>
 </div>
 
+<!-- 初回ヒント -->
+<div class="hint-overlay" id="hint-overlay" role="dialog" aria-label="操作ガイド" tabindex="0">
+  <div class="hint-box">
+    <div class="hint-line"><span class="hint-key">タップ</span><span class="hint-sep">·</span><span class="hint-desc">経路を光らせる</span></div>
+    <div class="hint-line"><span class="hint-key">2回タップ</span><span class="hint-sep">·</span><span class="hint-desc">語根の詳細を開く</span></div>
+    <div class="hint-line"><span class="hint-key">ドラッグ</span><span class="hint-sep">·</span><span class="hint-desc">地図を動かす</span></div>
+    <div class="hint-dismiss">— タップで閉じる —</div>
+  </div>
+</div>
+
 <div class="footer">
   <span class="dash"></span>
   <span>流れを見よ · 言え · 保て</span>
   <span class="dash"></span>
+  <a href="https://x.com/fusano_bit" target="_blank" rel="noopener" class="footer-link">© fusano</a>
 </div>
 
 <!-- Docs Gallery Modal -->
@@ -570,21 +672,21 @@
     <div class="docs-page-set active" data-lang="ja">
       <div class="docs-page">
         <div class="docs-page-num">1 / 2 · 祖語の構造</div>
-        <img src="images/arico-ja-1.jpg" alt="Arico 祖語の構造" loading="lazy">
+        <img src="images/arico-ja-1.jpg" alt="Arico 祖語の構造 — 空間・群れ・資源感覚・状態・行為の5カテゴリと核語根一覧" width="720" height="1020" loading="lazy">
       </div>
       <div class="docs-page">
         <div class="docs-page-num">2 / 2 · 詩学・七聖句・多層表記</div>
-        <img src="images/arico-ja-2.jpg" alt="Arico 詩学" loading="lazy">
+        <img src="images/arico-ja-2.jpg" alt="Arico 詩学 — 七聖句・多層表記・詩的構造の解説" width="720" height="1020" loading="lazy">
       </div>
     </div>
     <div class="docs-page-set" data-lang="en">
       <div class="docs-page">
         <div class="docs-page-num">1 / 2 · Proto-language Structure</div>
-        <img src="images/arico-en-1.jpg" alt="Arico Proto-language" loading="lazy">
+        <img src="images/arico-en-1.jpg" alt="Arico Proto-language Structure — 5 categories: Space, Group, Resource-Sense, State, Action with core roots" width="720" height="1020" loading="lazy">
       </div>
       <div class="docs-page">
         <div class="docs-page-num">2 / 2 · Poetics, Core Sentences, and Multilayer Notation</div>
-        <img src="images/arico-en-2.jpg" alt="Arico Poetics" loading="lazy">
+        <img src="images/arico-en-2.jpg" alt="Arico Poetics — The Seven Sacred Sentences, multilayer notation, and poetic structure" width="720" height="1020" loading="lazy">
       </div>
     </div>
   </div>
@@ -604,49 +706,49 @@ const data = {
       id: "cat-space", label: "空間", type: "category",
       meaning: "位置・方向・経路の語根",
       children: [
-        { id: "ko", label: "ko", kana: "コ", meaning: "内・巣", desc: "所属領域、安全圏、維持すべき内部。" },
-        { id: "do", label: "do", kana: "ド", meaning: "外・外側", desc: "巣外、異所、境界の向こう側。" },
-        { id: "ra", label: "ra", kana: "ラ", meaning: "核・中心・帰還点", desc: "すべてが在るべき中心。祖語の基軸語。" },
-        { id: "to", label: "to", kana: "ト", meaning: "道・経路・つながり", desc: "運ばれる道、辿られる経路、結ぶもの。" },
+        { id: "ko", label: "ko", kana: "コ", meaning: "内・巣", desc: "所属領域、安全圏、維持すべき内部。", examples: ["ko sa. · 巣内異常なし", "ma ko. · 幼体を内に"] },
+        { id: "do", label: "do", kana: "ド", meaning: "外・外側", desc: "巣外、異所、境界の向こう側。", examples: ["do ke. · 外に危険", "su do. · 外へ向かう"] },
+        { id: "ra", label: "ra", kana: "ラ", meaning: "核・中心・帰還点", desc: "すべてが在るべき中心。祖語の基軸語。", examples: ["ra sa. · 核は安定", "to ra. · 核へ戻る道"] },
+        { id: "to", label: "to", kana: "ト", meaning: "道・経路・つながり", desc: "運ばれる道、辿られる経路、結ぶもの。", examples: ["to sa. · 経路は安全", "to zu. · 経路異常"] },
       ]
     },
     {
       id: "cat-group", label: "群れ", type: "category",
       meaning: "個体と他者の語根",
       children: [
-        { id: "ri", label: "ri", kana: "リ", meaning: "仲間・同胞", desc: "同群個体。味方。群れの構成員。" },
-        { id: "ta", label: "ta", kana: "タ", meaning: "他者・外個体", desc: "向かいの個体。非仲間。未知の存在。" },
-        { id: "ma", label: "ma", kana: "マ", meaning: "幼体・小さきもの", desc: "保護すべき対象。継承される命。" },
-        { id: "pa", label: "pa", kana: "パ", meaning: "大きいもの・強いもの", desc: "圧のある存在、大きな個体。" },
+        { id: "ri", label: "ri", kana: "リ", meaning: "仲間・同胞", desc: "同群個体。味方。群れの構成員。", examples: ["ri sa. · 仲間は無事", "ri no. · 仲間が欠けた"] },
+        { id: "ta", label: "ta", kana: "タ", meaning: "他者・外個体", desc: "向かいの個体。非仲間。未知の存在。", examples: ["ta ke. · 外個体に警戒", "ta do. · 他者は外に"] },
+        { id: "ma", label: "ma", kana: "マ", meaning: "幼体・小さきもの", desc: "保護すべき対象。継承される命。", examples: ["ma mo. · 幼体を運べ", "ma sa. · 幼体は安全"] },
+        { id: "pa", label: "pa", kana: "パ", meaning: "大きいもの・強いもの", desc: "圧のある存在、大きな個体。", examples: ["pa ke. · 大型個体に警戒", "pa do. · 強者は外に"] },
       ]
     },
     {
       id: "cat-sense", label: "資源・感覚", type: "category",
       meaning: "受け渡しと知覚の語根",
       children: [
-        { id: "nu", label: "nu", kana: "ヌ", meaning: "食・栄養", desc: "持ち運ぶ資源。共有される糧。" },
-        { id: "fe", label: "fe", kana: "フェ", meaning: "匂い・痕跡", desc: "フェロモン的しるし。状態の記録。" },
-        { id: "ha", label: "ha", kana: "ハ", meaning: "触れる・接触", desc: "触覚による知覚。直接の伝達。" },
+        { id: "nu", label: "nu", kana: "ヌ", meaning: "食・栄養", desc: "持ち運ぶ資源。共有される糧。", examples: ["nu mo. · 食を運ぶ", "nu sa. · 食は満ちている"] },
+        { id: "fe", label: "fe", kana: "フェ", meaning: "匂い・痕跡", desc: "フェロモン的しるし。状態の記録。", examples: ["fe no. · 痕跡が消えた", "fe mi. · 匂いを察知"] },
+        { id: "ha", label: "ha", kana: "ハ", meaning: "触れる・接触", desc: "触覚による知覚。直接の伝達。", examples: ["ha ri. · 仲間に触れる", "ha mi. · 接触で確認"] },
       ]
     },
     {
       id: "cat-state", label: "状態", type: "category",
       meaning: "群れの安否を表す語根",
       children: [
-        { id: "sa", label: "sa", kana: "サ", meaning: "安定・整う・良い", desc: "正しい位置にある。群れにとって好ましい。" },
-        { id: "zu", label: "zu", kana: "ズ", meaning: "乱れ・不安定・崩れ", desc: "本来の配置から外れた状態。" },
-        { id: "ke", label: "ke", kana: "ケ", meaning: "危険・警戒・異常", desc: "群れに迫る何か。注意を要する。" },
-        { id: "no", label: "no", kana: "ノ", meaning: "無い・欠如・消失", desc: "在るべきものが失われた状態。" },
+        { id: "sa", label: "sa", kana: "サ", meaning: "安定・整う・良い", desc: "正しい位置にある。群れにとって好ましい。", examples: ["ko sa. · 巣内異常なし", "ra sa. · 核は安定"] },
+        { id: "zu", label: "zu", kana: "ズ", meaning: "乱れ・不安定・崩れ", desc: "本来の配置から外れた状態。", examples: ["to zu. · 経路異常", "zu ke. · 乱れに警戒"] },
+        { id: "ke", label: "ke", kana: "ケ", meaning: "危険・警戒・異常", desc: "群れに迫る何か。注意を要する。", examples: ["ke-ke. · 緊急警戒", "do ke. · 外に危険"] },
+        { id: "no", label: "no", kana: "ノ", meaning: "無い・欠如・消失", desc: "在るべきものが失われた状態。", examples: ["fe no. · 痕跡消失", "ri no. · 孤立・手薄"] },
       ]
     },
     {
       id: "cat-act", label: "行為", type: "category",
       meaning: "動きと配置の語根",
       children: [
-        { id: "su", label: "su", kana: "ス", meaning: "行く・移動・動く", desc: "進むこと。向かうこと。" },
-        { id: "mo", label: "mo", kana: "モ", meaning: "運ぶ・持つ・保持する", desc: "資源や幼体を運搬する。維持する。" },
-        { id: "mi", label: "mi", kana: "ミ", meaning: "見る・感知・気づく", desc: "察知すること。情報を得ること。" },
-        { id: "ru", label: "ru", kana: "ル", meaning: "場所・配置・置く", desc: "留める、離す、位置を定める。" },
+        { id: "su", label: "su", kana: "ス", meaning: "行く・移動・動く", desc: "進むこと。向かうこと。", examples: ["su ra. · 核へ向かえ", "su do. · 外へ出る"] },
+        { id: "mo", label: "mo", kana: "モ", meaning: "運ぶ・持つ・保持する", desc: "資源や幼体を運搬する。維持する。", examples: ["nu mo. · 食を運ぶ", "ma mo. · 幼体を運べ"] },
+        { id: "mi", label: "mi", kana: "ミ", meaning: "見る・感知・気づく", desc: "察知すること。情報を得ること。", examples: ["fe mi. · 匂いを察知", "ke mi. · 危険を感知"] },
+        { id: "ru", label: "ru", kana: "ル", meaning: "場所・配置・置く", desc: "留める、離す、位置を定める。", examples: ["nu ru. · 食を置く", "ma ru ko. · 幼体を巣に留める"] },
       ]
     },
     {
@@ -770,10 +872,16 @@ categories.forEach(cat => {
 const nodeGroup = el('g', { class: 'nodes' }, svg);
 
 function drawNode(node, pos, type) {
+  const ariaLabel = node.kana
+    ? `${node.label}（${node.kana}）— ${node.meaning || ''}`
+    : `${node.label} — ${node.meaning || ''}`;
   const g = el('g', {
     class: `node node-${type}`,
     transform: `translate(${pos.x},${pos.y})`,
-    'data-id': node.id
+    'data-id': node.id,
+    'tabindex': '0',
+    'role': 'button',
+    'aria-label': ariaLabel
   }, nodeGroup);
 
   if (type === 'root') {
@@ -940,7 +1048,7 @@ document.getElementById('drawer-close').addEventListener('click', () => {
 function showDrawer(node) {
   let html = '';
   html += `<h2>${node.label}</h2>`;
-  if (node.kana) html += `<div class="sub">${node.kana}</div>`;
+  if (node.kana) html += `<div class="sub">${node.kana} · ${node.type === 'root' ? '祖語' : node.type === 'category' ? 'カテゴリ' : node.isPoem ? '古語句' : '核語根'}</div>`;
   else html += `<div class="sub">${node.type === 'root' ? '祖語' : node.type === 'category' ? 'カテゴリ' : node.isPoem ? '古語句' : '核語根'}</div>`;
 
   if (node.meaning) {
@@ -950,10 +1058,17 @@ function showDrawer(node) {
     html += `<h3>解説</h3><p>${node.desc}</p>`;
   }
 
+  if (node.examples && node.examples.length) {
+    html += `<h3>例文</h3>`;
+    node.examples.forEach(ex => {
+      html += `<div class="example">${ex}</div>`;
+    });
+  }
+
   if (node.children && node.children.length) {
     html += `<h3>派生 / 内包</h3><div>`;
     node.children.forEach(c => {
-      html += `<span class="tag">${c.label}</span>`;
+      html += `<span class="tag" data-goto="${c.id}" role="button" tabindex="0" aria-label="${c.label}へ移動">${c.label}</span>`;
     });
     html += `</div>`;
   }
@@ -964,7 +1079,7 @@ function showDrawer(node) {
     parts.forEach(p => {
       const root = findNode(p);
       if (root) {
-        html += `<div class="example">${p} · ${root.meaning}</div>`;
+        html += `<div class="example link-example" data-goto="${root.id}" role="button" tabindex="0">${p} · ${root.meaning}</div>`;
       } else {
         html += `<div class="example">${p}</div>`;
       }
@@ -980,16 +1095,64 @@ function showDrawer(node) {
     html += `<div class="example">ke-ke. · 緊急警戒</div>`;
   }
 
+  // URLハッシュ更新
+  history.replaceState(null, '', '#' + node.id);
+
   drawerContent.innerHTML = html;
+
+  // タグ・例文クリックでノードへジャンプ
+  drawerContent.querySelectorAll('[data-goto]').forEach(el => {
+    const handler = () => {
+      const targetId = el.dataset.goto;
+      navigateToNode(targetId);
+    };
+    el.addEventListener('click', handler);
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); } });
+  });
+
   drawer.classList.add('open');
   drawer.scrollTop = 0;
 }
 
 function closeDrawer() {
   drawer.classList.remove('open');
+  history.replaceState(null, '', window.location.pathname);
 }
 
-// Swipe down to close on portrait bottom sheet
+// 指定IDのノードへジャンプしてドロワーを開く
+function navigateToNode(id) {
+  const nodeData = findNode(id);
+  if (!nodeData) return;
+  resetHighlights();
+  highlightPath(id);
+  activeId = id;
+  showDrawer(nodeData);
+  const pos = positions[id];
+  if (pos && id !== 'arico') {
+    panTo(pos.x, pos.y, Math.max(scale, 1.1));
+  }
+}
+
+// キーボード：Enterでシングルタップ相当、Shift+EnterまたはSpaceでドロワー表示
+document.querySelectorAll('.node').forEach(node => {
+  node.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const id = node.dataset.id;
+      const nodeData = findNode(id);
+      if (!nodeData) return;
+      if (e.shiftKey || e.key === ' ') {
+        showDrawer(nodeData);
+      } else {
+        if (activeId === id) {
+          resetHighlights(); closeDrawer(); activeId = null;
+        } else {
+          resetHighlights(); highlightPath(id); activeId = id; closeDrawer();
+        }
+      }
+    }
+  });
+});
 let drawerTouchStart = null;
 drawer.addEventListener('touchstart', (e) => {
   if (!isPortrait()) return;
@@ -1114,11 +1277,18 @@ stage.addEventListener('touchend', () => {
   pinchStart = null;
 });
 
-// Wheel zoom
+// Wheel zoom — カーソル位置を焦点にして拡大
 stage.addEventListener('wheel', (e) => {
   e.preventDefault();
   const delta = -e.deltaY * 0.001;
-  scale = Math.max(0.4, Math.min(3, scale + delta * scale));
+  const newScale = Math.max(0.4, Math.min(3, scale * (1 + delta)));
+  // カーソルのSVG座標を求め、スケール変化後も同じ画面位置に来るよう補正
+  const rect = stage.getBoundingClientRect();
+  const cx = e.clientX - rect.left - rect.width / 2;
+  const cy = e.clientY - rect.top - rect.height / 2;
+  tx = cx - (cx - tx) * (newScale / scale);
+  ty = cy - (cy - ty) * (newScale / scale);
+  scale = newScale;
   setTransform(scale, tx, ty);
 }, { passive: false });
 
@@ -1172,15 +1342,44 @@ document.querySelectorAll('.docs-tab').forEach(tab => {
   });
 });
 
-// Entrance animation
+// Entrance animation — アニメ終了後はインラインstyleを消去してCSS遷移を正常化
 window.addEventListener('load', () => {
   document.querySelectorAll('.node').forEach((n, i) => {
     n.style.opacity = '0';
+    n.style.transition = 'opacity 0.6s';
     setTimeout(() => {
-      n.style.transition = 'opacity 0.6s';
       n.style.opacity = '1';
+      setTimeout(() => {
+        n.style.opacity = '';
+        n.style.transition = '';
+      }, 700);
     }, 100 + i * 30);
   });
+
+  // URLハッシュからノードを開く
+  const hash = window.location.hash.slice(1);
+  if (hash) {
+    setTimeout(() => {
+      const nodeData = findNode(hash);
+      if (nodeData) navigateToNode(hash);
+    }, 800);
+  }
+
+  // 初回ヒント表示（localStorage で既読管理）
+  if (!localStorage.getItem('arico-hint-seen')) {
+    const hint = document.getElementById('hint-overlay');
+    if (hint) {
+      hint.style.display = 'flex';
+      const dismiss = () => {
+        hint.style.opacity = '0';
+        setTimeout(() => hint.remove(), 400);
+        localStorage.setItem('arico-hint-seen', '1');
+      };
+      hint.addEventListener('click', dismiss);
+      hint.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') dismiss(); });
+      setTimeout(dismiss, 6000); // 6秒で自動消去
+    }
+  }
 });
 </script>
 
